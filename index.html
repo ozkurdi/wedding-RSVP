@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace & Osama | Wedding Invitation</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        :root {
+            --olive-primary: #4A5446;
+            --olive-dark: #2C332B;
+            --olive-light: #8C937A;
+            --parchment-bg: #F5F2EC;
+            --parchment-card: #FAF8F5;
+            --text-dark: #232822;
+            --text-muted: #6B7268;
+            --border-color: #E2DDD5;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--parchment-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .serif {
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 1px;
+        }
+
+        .script-font {
+            font-family: 'Pinyon Script', cursive;
+        }
+
+        /* --- PASSCODE LOCK SCREEN --- */
+        #passcode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--parchment-bg);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .passcode-card {
+            background: var(--parchment-card);
+            border: 1px solid var(--border-color);
+            padding: 40px 30px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+
+        .passcode-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            font-family: 'Montserrat', sans-serif;
+            text-align: center;
+            letter-spacing: 2px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--olive-primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--olive-dark);
+        }
+
+        /* --- NAVIGATION --- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: rgba(245, 242, 236, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--olive-primary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--olive-dark);
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            position: relative;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--white);
+            background: linear-gradient(180deg, rgba(44, 51, 43, 0.4) 0%, rgba(44, 51, 43, 0.65) 100%), 
+                        url('https://globaluserfiles.com/media/8568_fd102d9f5a7b6e2afc9fb5a1c2bcae5f996fce0f.jpeg/v1/w_0,h_653/dji0020.jpg') center/cover no-repeat fixed;
+            padding: 40px 20px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+
+        .hero .date {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            margin: 20px 0;
+            text-transform: uppercase;
+        }
+
+        .hero .location {
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .hero .tagline {
+            font-size: 2rem;
+            color: #E8E4D9;
+            margin-top: 25px;
+        }
+
+        /* --- SECTIONS GENERAL --- */
+        section {
+            padding: 80px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--olive-primary);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .section-header .divider {
+            width: 60px;
+            height: 1px;
+            background: var(--olive-light);
+            margin: 15px auto;
+        }
+
+        /* --- COUNTDOWN --- */
+        .countdown-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .countdown-item {
+            text-align: center;
+        }
+
+        .countdown-number {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            color: var(--olive-primary);
+            line-height: 1;
+        }
+
+        .countdown-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+        }
+
+        /* --- SCHEDULE --- */
+        .event-card {
+            background: var(--parchment-card);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .event-card h3 {
+            font-size: 1.8rem;
+            color: var(--olive-primary);
+            margin-bottom: 5px;
+        }
+
+        .event-time {
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--olive-light);
+            margin-bottom: 15px;
+        }
+
+        /* --- MAP & TRAVEL --- */
+        #map {
+            height: 400px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: var(--parchment-card);
+            border: 1px solid var(--border-color);
+            padding: 25px;
+            border-radius: 4px;
+        }
+
+        .info-card h4 {
+            font-size: 1.3rem;
+            color: var(--olive-primary);
+            margin-bottom: 10px;
+        }
+
+        /* --- CUSTOM RSVP FORM STYLING --- */
+        .rsvp-form {
+            background: var(--parchment-card);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: var(--olive-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group label {
+            text-transform: none;
+            letter-spacing: 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* --- FAQ --- */
+        .faq-item {
+            background: var(--parchment-card);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .faq-item h4 {
+            font-size: 1.2rem;
+            color: var(--olive-primary);
+            margin-bottom: 8px;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero .tagline { font-size: 1.5rem; }
+            .nav-container { gap: 12px; }
+            .nav-link { font-size: 0.65rem; }
+            section { padding: 50px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PASSCODE PROTECTED OVERLAY -->
+    <div id="passcode-overlay">
+        <div class="passcode-card">
+            <h2 class="serif" style="color: var(--olive-primary); font-size: 2rem;">GRACE & OSAMA</h2>
+            <p style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; color: var(--text-muted);">Villa Poggio di Gaville • Tuscany</p>
+            <div style="margin: 25px 0;">
+                <p style="font-size: 0.85rem; color: var(--text-dark);">Please enter the password from your invitation to access our wedding website:</p>
+                <input type="password" id="passcode-input" class="passcode-input" placeholder="Enter Passcode">
+                <p id="passcode-error" style="color: #a94442; font-size: 0.8rem; display: none;">Incorrect passcode. Please try again.</p>
+            </div>
+            <button onclick="checkPasscode()" class="btn-primary" style="width: 100%;">Enter Site</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div id="main-content" style="display: none;">
+
+        <!-- NAVIGATION -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#wedding" class="nav-link">The Wedding</a>
+                <a href="#weekend" class="nav-link">The Schedule</a>
+                <a href="#travel" class="nav-link">Travel</a>
+                <a href="#stay" class="nav-link">Where to Stay</a>
+                <a href="#rsvp" class="nav-link">RSVP</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+            </div>
+        </nav>
+
+        <!-- HERO SECTION -->
+        <header id="home" class="hero">
+            <div class="hero-content">
+                <h1>Grace & Osama</h1>
+                <div class="date">11 September 2027</div>
+                <div class="location">Villa Poggio di Gaville • Tuscany, Italy</div>
+                <div class="tagline script-font">We can't wait to celebrate with you</div>
+                <div style="margin-top: 30px;">
+                    <a href="#rsvp" class="btn-primary">RSVP Now</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- COUNTDOWN SECTION -->
+        <section style="text-align: center; border-bottom: 1px solid var(--border-color);">
+            <div class="section-header" style="margin-bottom: 20px;">
+                <h2 style="font-size: 1.8rem;">Counting Down To Tuscany</h2>
+            </div>
+            <div class="countdown-grid">
+                <div class="countdown-item">
+                    <div id="cd-days" class="countdown-number">00</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <div id="cd-hours" class="countdown-number">00</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div id="cd-mins" class="countdown-number">00</div>
+                    <div class="countdown-label">Mins</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE WEDDING -->
+        <section id="wedding">
+            <div class="section-header">
+                <h2>The Wedding Day</h2>
+                <div class="divider"></div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Saturday, September 11, 2027</p>
+            </div>
+            
+            <div class="event-card">
+                <h3>Villa Poggio di Gaville</h3>
+                <div class="event-time">Cavriglia, Arezzo, Tuscany</div>
+                <p style="max-width: 600px; margin: 0 auto; color: var(--text-dark);">
+                    Join us in the heart of Tuscany as we exchange our vows surrounded by olive groves and rolling hills, followed by dinner, drinks, and dancing under the stars.
+                </p>
+                <div style="margin-top: 20px;">
+                    <button onclick="downloadICS()" class="btn-primary" style="font-size: 0.75rem; padding: 8px 20px;">Add to Calendar (.ics)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE WEEKEND SCHEDULE -->
+        <section id="weekend" style="background: var(--parchment-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); max-width: 100%;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+                <div class="section-header">
+                    <h2>The Weekend</h2>
+                    <div class="divider"></div>
+                </div>
+
+                <div class="event-card">
+                    <h3>Friday • Welcome Dinner</h3>
+                    <div class="event-time">September 10, 2027 • Evening</div>
+                    <p>A relaxed evening to gather, toast, and kick off our wedding weekend together.</p>
+                </div>
+
+                <div class="event-card">
+                    <h3>Saturday • Wedding Ceremony & Reception</h3>
+                    <div class="event-time">September 11, 2027 • Afternoon into Evening</div>
+                    <p>Our official wedding ceremony, dinner, and evening celebration at Villa Poggio di Gaville.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TRAVEL & MAP -->
+        <section id="travel">
+            <div class="section-header">
+                <h2>Travel Information</h2>
+                <div class="divider"></div>
+            </div>
+
+            <div class="grid-2">
+                <div class="info-card">
+                    <h4>✈️ Flying In</h4>
+                    <p><strong>Florence Airport (FLR):</strong> ~50 mins drive to the venue.</p>
+                    <p style="margin-top: 10px;"><strong>Pisa Airport (PSA):</strong> ~1 hr 40 mins drive to the venue.</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>🚂 By Train or Car</h4>
+                    <p><strong>Train Station:</strong> Figline Valdarno (15-20 mins taxi to venue).</p>
+                    <p style="margin-top: 10px;"><strong>Car Rental:</strong> Highly recommended for exploring the Tuscan countryside at your leisure.</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3 class="serif" style="text-align: center; color: var(--olive-primary); margin-bottom: 15px;">Venue Location</h3>
+                <div id="map"></div>
+            </div>
+        </section>
+
+        <!-- WHERE TO STAY -->
+        <section id="stay" style="background: var(--parchment-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); max-width: 100%;">
+            <div style="max-width: 1000px; margin: 0 auto;">
+                <div class="section-header">
+                    <h2>Where to Stay</h2>
+                    <div class="divider"></div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Accommodation details and recommended stay options near the venue will be updated here soon.</p>
+                </div>
+
+                <div class="grid-2">
+                    <div class="info-card" style="background: var(--white);">
+                        <h4>Nearby Agriturismos & Villas</h4>
+                        <p style="color: var(--text-muted);">Details coming soon. We will share a list of nearby boutique hotels and country houses close to Villa Poggio di Gaville.</p>
+                    </div>
+
+                    <div class="info-card" style="background: var(--white);">
+                        <h4>Figline Valdarno Options</h4>
+                        <p style="color: var(--text-muted);">Details coming soon. Accommodation options in the neighboring town with easy access to the train station and venue.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CUSTOM RSVP FORM -->
+        <section id="rsvp">
+            <div class="section-header">
+                <h2>RSVP</h2>
+                <div class="divider"></div>
+                <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Please respond by mid-April 2027</p>
+            </div>
+
+            <div class="rsvp-form">
+                <form id="rsvp-form" onsubmit="submitRSVP(event)">
+                    <div class="form-group">
+                        <label>Full Name(s)*</label>
+                        <input type="text" id="rsvp-name" class="form-control" placeholder="e.g. Jane & John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Will You Be Attending?*</label>
+                        <select id="rsvp-attending" class="form-control" required>
+                            <option value="">Select your response...</option>
+                            <option value="Joyfully Accepts">Joyfully Accepts</option>
+                            <option value="Regretfully Declines">Regretfully Declines</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Events Attending</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="event-welcome" checked> Welcome Dinner (Sept 10)</label>
+                            <label><input type="checkbox" id="event-wedding" checked> Wedding Ceremony & Reception (Sept 11)</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dietary Restrictions or Allergies</label>
+                        <input type="text" id="rsvp-diet" class="form-control" placeholder="e.g. Vegetarian, Nut Allergy, Gluten-Free">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Song Request</label>
+                        <input type="text" id="rsvp-song" class="form-control" placeholder="A song that will get you on the dance floor">
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn-primary" style="width: 100%; margin-top: 10px;">Submit Response</button>
+                </form>
+                
+                <div id="rsvp-success" style="display: none; text-align: center; padding: 20px;">
+                    <h3 class="serif" style="color: var(--olive-primary); font-size: 2rem;">Thank You!</h3>
+                    <p style="margin-top: 10px;">Your RSVP has been submitted. We look forward to celebrating with you in Tuscany!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ SECTION -->
+        <section id="faq">
+            <div class="section-header">
+                <h2>Frequently Asked Questions</h2>
+                <div class="divider"></div>
+            </div>
+
+            <div class="faq-item">
+                <h4>What is the dress code?</h4>
+                <p>Formal / Elegant Italian Summer attire. Suit and tie for gentlemen, elegant formal dresses for ladies.</p>
+            </div>
+
+            <div class="faq-item">
+                <h4>When should I RSVP by?</h4>
+                <p>Please submit your RSVP by mid-April 2027 so we can finalize arrangements with our venue and caterers.</p>
+            </div>
+
+            <div class="faq-item">
+                <h4>Can I bring a plus one or children?</h4>
+                <p>Please refer to your formal invitation for details regarding your specific party size.</p>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <p class="serif" style="font-size: 1.2rem; color: var(--olive-primary); margin-bottom: 5px;">Grace & Osama</p>
+            <p>11.09.2027 • Villa Poggio di Gaville, Tuscany</p>
+        </footer>
+
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Passcode Protection Logic
+        const CORRECT_PASSCODE = "tuscany2027";
+
+        function checkPasscode() {
+            const input = document.getElementById('passcode-input').value.trim();
+            if (input === CORRECT_PASSCODE) {
+                document.getElementById('passcode-overlay').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                initMap();
+                initCountdown();
+            } else {
+                document.getElementById('passcode-error').style.display = 'block';
+            }
+        }
+
+        document.getElementById('passcode-input').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') checkPasscode();
+        });
+
+        // Countdown Timer Logic
+        function initCountdown() {
+            const targetDate = new Date('September 11, 2027 15:30:00').getTime();
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff > 0) {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+                    document.getElementById('cd-days').innerText = String(days).padStart(2, '0');
+                    document.getElementById('cd-hours').innerText = String(hours).padStart(2, '0');
+                    document.getElementById('cd-mins').innerText = String(mins).padStart(2, '0');
+                }
+            }
+            updateTimer();
+            setInterval(updateTimer, 60000);
+        }
+
+        // Leaflet Interactive Map
+        let mapInitialized = false;
+        function initMap() {
+            if (mapInitialized) return;
+            mapInitialized = true;
+
+            const venueCoords = [43.5781, 11.4554];
+            const map = L.map('map').setView(venueCoords, 11);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            L.marker(venueCoords).addTo(map)
+                .bindPopup('<b>Villa Poggio di Gaville</b><br>Wedding Venue')
+                .openPopup();
+        }
+
+        // Calendar .ics File Generator
+        function downloadICS() {
+            const icsData = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Grace and Osama Wedding//EN
+BEGIN:VEVENT
+SUMMARY:Grace & Osama's Wedding
+DESCRIPTION:Celebration of Grace and Osama's Wedding at Villa Poggio di Gaville, Tuscany.
+LOCATION:Villa Poggio di Gaville, Via di Gaville 36, 52022 Cavriglia AR, Italy
+DTSTART:20270911T153000Z
+DTEND:20270911T230000Z
+END:VEVENT
+END:VCALENDAR`;
+
+            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'Grace_Osama_Wedding.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // GOOGLE SCRIPT WEB APP ENDPOINT
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFjBo5ij-BzFYs8oKwyMDyrmrvmMcNRFZRWRzdy_ZNPC5-uFTu4kG2pRnccoWWfeR8/exec";
+
+        function submitRSVP(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submit-btn');
+            btn.innerText = "Submitting...";
+            btn.disabled = true;
+
+            const events = [];
+            if (document.getElementById('event-welcome').checked) events.push('Welcome Dinner');
+            if (document.getElementById('event-wedding').checked) events.push('Wedding Ceremony & Reception');
+
+            const payload = {
+                name: document.getElementById('rsvp-name').value,
+                attending: document.getElementById('rsvp-attending').value,
+                events: events,
+                diet: document.getElementById('rsvp-diet').value,
+                song: document.getElementById('rsvp-song').value
+            };
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                document.getElementById('rsvp-form').style.display = 'none';
+                document.getElementById('rsvp-success').style.display = 'block';
+            }).catch(err => {
+                alert('Submission failed. Please try again.');
+                btn.innerText = "Submit Response";
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
